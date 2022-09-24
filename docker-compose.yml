@@ -1,0 +1,169 @@
+---
+version: "3.7"
+services:
+
+  jellyfin:
+    image: linuxserver/jellyfin:amd64-10.7.7 
+    runtime: nvidia
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+        #- NVIDIA_DRIVER_CAPABILITIES=all
+      - NVIDIA_VISIBLE_DEVICES=all
+        #      - JELLYFIN_PublishedServerUrl=192.168.0.5 #optional
+        #    deploy:
+        #      resources:
+        #        reservations:
+        #          devices:
+        #            - capabilities: [gpu]
+    volumes:
+      - ${JELLYCONF}:/config
+      - ${TV}:/data/tvshows
+      - ${MOVIES}:/data/movies
+      - ${MUSIC}:/data/music
+    ports:
+      - 8096:8096
+      - 8920:8920 #optional
+      - 7359:7359/udp #optional
+      - 1900:1900/udp #optional
+    restart: unless-stopped
+
+  deluge:
+    image: linuxserver/deluge:2.0.5
+    container_name: deluge
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+        #    network_mode: "host"
+    ports:
+      - 8112:8112
+      - 57078:57078
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/deluge/config:/config
+      - ${PATH_MEDIA}:/data
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    restart: unless-stopped
+    ports:
+      - 9696:9696
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/jackett/config:/config
+      - /etc/localtime:/etc/localtime:ro
+
+  sonarr:
+    image: linuxserver/sonarr:amd64-version-3.0.6.1342
+    container_name: sonarr
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+        #    network_mode: "host"
+    ports:
+      - 8989:8989
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/sonarr/config:/config
+      - ${PATH_MEDIA}:/data
+
+  radarr:
+    image: linuxserver/radarr:4.0.4-nightly-alpine
+    container_name: radarr
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+        #    network_mode: "host"
+    ports:
+      - 7878:7878
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/radarr/config:/config
+      - ${PATH_MEDIA}:/data
+      - ${PATH_MEDIA}/radarr/config/MediaCover:/config/MediaCover
+
+  lidarr:
+    image: linuxserver/lidarr:1.0.0-nightly-alpine
+    container_name: lidarr
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+        #    network_mode: "host"
+    ports:
+      - 8686:8686
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/lidarr/config:/config
+      - ${PATH_MEDIA}:/data
+      - ${PATH_MEDIA}/lidarr/config/MediaCover:/config/MediaCover
+
+  readarr:
+    image: ghcr.io/linuxserver/readarr:amd64-0.1.0-nightly
+    container_name: readarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/readarr/config:/config
+            #- /path/to/data:/config
+      - ${PATH_MEDIA}/readarr:/books
+            #- /path/to/books:/books #optional
+      - ${PATH_MEDIA}/books:/downloads
+            #- /path/to/downloadclient-downloads:/downloads #optional
+    ports:
+      - 8787:8787
+    restart: unless-stopped
+
+  airsonic-advanced:
+    image: lscr.io/linuxserver/airsonic-advanced:11.0.0
+    container_name: airsonic-advanced
+    deploy:
+     resources:
+       limits:
+         cpus: 2
+         memory: 4096M
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+        #      - CONTEXT_PATH=horsey.rocks/air #optional
+        #      - JAVA_OPTS=-Dserver.use-forward-headers=true #optional
+    volumes:
+      - ${A_CONFIG}:/config
+      - ${MUSIC}:/music
+      - ${PLAYLISTS}:/playlists
+      - ${PODCASTS}:/podcasts
+        #      - </path/to/other media>:/media #optional
+    ports:
+      - 4040:4040
+        #devices:
+            #      - /dev/snd:/dev/snd #optional
+    restart: unless-stopped
