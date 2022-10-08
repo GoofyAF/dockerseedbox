@@ -62,7 +62,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ${CONFIG}/jackett/config:/config
+      - ${CONFIG}/prowlarr/config:/config
       - /etc/localtime:/etc/localtime:ro
 
   sonarr:
@@ -140,30 +140,4 @@ services:
             #- /path/to/downloadclient-downloads:/downloads #optional
     ports:
       - 8787:8787
-    restart: unless-stopped
-
-  airsonic-advanced:
-    image: lscr.io/linuxserver/airsonic-advanced:11.0.0
-    container_name: airsonic-advanced
-    deploy:
-     resources:
-       limits:
-         cpus: 2
-         memory: 4096M
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-        #      - CONTEXT_PATH=horsey.rocks/air #optional
-        #      - JAVA_OPTS=-Dserver.use-forward-headers=true #optional
-    volumes:
-      - ${A_CONFIG}:/config
-      - ${MUSIC}:/music
-      - ${PLAYLISTS}:/playlists
-      - ${PODCASTS}:/podcasts
-        #      - </path/to/other media>:/media #optional
-    ports:
-      - 4040:4040
-        #devices:
-            #      - /dev/snd:/dev/snd #optional
     restart: unless-stopped
